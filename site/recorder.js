@@ -3,7 +3,7 @@ function capture(boot){
  function isGateway(url){try{return /^gateway(?:-[a-z0-9-]+)?\.discord\.gg$/i.test(new URL(url).hostname);}catch{return false;}}
  if(globalThis.__stopDiscordCapture)globalThis.__stopDiscordCapture();
  const prepared=window.__discordRecorderLaunchWindow;delete window.__discordRecorderLaunchWindow;const popup=prepared&&!prepared.closed?prepared:window.open('about:blank','discord_event_recorder','width=1400,height=900');
- if(!popup)throw Error('팝업을 허용한 뒤 다시 실행하세요.');
+ if(!popup){const help='팝업이 차단됐습니다. 디스코드 탭 주소창 오른쪽 팝업 차단 아이콘 → discord.com의 팝업 및 리디렉션 항상 허용 → 완료 후 다시 실행하세요.';window.alert(help);throw Error(help);}
  popup.__discordRecorderStop?.();
  const subscriptions=new Map();
  const C={FluxDispatcher:{subscribe(t,f){if(!subscriptions.has(t))subscriptions.set(t,new Set());subscriptions.get(t).add(f);},unsubscribe(t,f){subscriptions.get(t)?.delete(f);}}};
