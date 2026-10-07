@@ -1,5 +1,5 @@
 const base = new URL("./", location.href).href;
-const version = "20261007v1";
+const version = "20261007v2";
 const loaderURL = new URL("loader.html?v=" + version, base).href;
 const source = `eval(await new Promise((resolve, reject) => {
   const origin = ${JSON.stringify(new URL(base).origin)}, nonce = crypto.randomUUID();
@@ -21,15 +21,28 @@ const source = `eval(await new Promise((resolve, reject) => {
   loader = window.open(${JSON.stringify(loaderURL)} + '&nonce=' + nonce + '&origin=' + encodeURIComponent(location.origin), '_blank', 'width=460,height=240');
   if (!loader) finish(Error());
 }));`;
-const area = document.querySelector("#loader");
-area.value = source;
+let area = document.querySelector("#loader");
+if (area) area.value = source;
 document.querySelector("#copy-loader").onclick = async () => {
   try {
     await navigator.clipboard.writeText(source);
     document.querySelector("#status").textContent =
       "코드를 복사했습니다. 디스코드 웹 Console에서 실행하세요.";
   } catch {
+    if (!area) {
+      const details = document.createElement("details");
+      const summary = document.createElement("summary");
+      summary.textContent = "직접 복사";
+      area = document.createElement("textarea");
+      area.id = "loader";
+      area.readOnly = true;
+      area.setAttribute("aria-label", "실행 코드");
+      details.append(summary, area);
+      document.querySelector("#status").after(details);
+    }
+    area.value = source;
     area.closest("details").open = true;
+    area.focus();
     area.select();
     document.querySelector("#status").textContent =
       "선택된 코드를 Ctrl+C로 복사하세요.";
