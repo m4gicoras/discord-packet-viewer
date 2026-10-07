@@ -8,7 +8,7 @@
     return;
   }
   try {
-    const response = await fetch('recorder.js?v=20261007-5', { cache: 'no-store' });
+    const response = await fetch('recorder.js?v=20261007-6', { cache: 'no-store' });
     if (!response.ok) throw new Error('recorder.js HTTP '+response.status);
     const code = await response.text();
     window.opener.postMessage({ type: 'discord-recorder-source', nonce, code }, origin);
