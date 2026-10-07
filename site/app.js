@@ -1,5 +1,5 @@
 const base = new URL("./", location.href).href;
-const version = "20261007-6";
+const version = "20261007v1";
 const loaderURL = new URL("loader.html?v=" + version, base).href;
 const source = `eval(await new Promise((resolve, reject) => {
   const origin = ${JSON.stringify(new URL(base).origin)}, nonce = crypto.randomUUID();
