@@ -1,5 +1,6 @@
 const base = new URL('./', location.href).href;
-const loaderURL = new URL('loader.html', base).href;
+const version = '20261007-2';
+const loaderURL = new URL('loader.html?v='+version, base).href;
 // The loader and recorder reuse one window. eval runs in the DevTools command.
 const command = `eval(await (async () => {
   const origin = ${JSON.stringify(new URL(base).origin)};
@@ -29,7 +30,7 @@ const command = `eval(await (async () => {
     };
     const timer = setTimeout(() => { cleanup(); popup?.close(); reject(new Error('실행 파일을 못 받았습니다. 사이트의 전체 코드 복사로 실행하세요.')); }, 30000);
     window.addEventListener('message', receive);
-    popup = window.open(${JSON.stringify(loaderURL)} + '?nonce=' + encodeURIComponent(nonce) + '&origin=' + encodeURIComponent(location.origin), 'discord_event_recorder', 'width=1400,height=900');
+    popup = window.open(${JSON.stringify(loaderURL)} + '&nonce=' + encodeURIComponent(nonce) + '&origin=' + encodeURIComponent(location.origin), 'discord_event_recorder', 'width=1400,height=900');
     if (!popup) {
       cleanup(); console.error('%c'+help, 'font-size:15px;line-height:1.8;color:#b33');
       alert(help); reject(new Error(help));
@@ -45,7 +46,7 @@ async function copy(text, area) {
 document.querySelector('#copy-loader').onclick = () => copy(command, document.querySelector('#loader'));
 document.querySelector('#copy-full').onclick = async event => {
   const button = event.currentTarget; button.disabled = true;
-  try { const r = await fetch(new URL('recorder.js', base), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP '+r.status); await copy(await r.text(), document.querySelector('#full')); }
+  try { const r = await fetch(new URL('recorder.js?v='+version, base), { cache: 'no-store' }); if (!r.ok) throw new Error('HTTP '+r.status); await copy(await r.text(), document.querySelector('#full')); }
   catch(e) { document.querySelector('#status').textContent = '코드를 불러오지 못했습니다: '+e.message; }
   finally { button.disabled = false; }
 };

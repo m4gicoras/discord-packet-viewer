@@ -8,11 +8,11 @@
     return;
   }
   try {
-    const response = await fetch('recorder.js', { cache: 'no-store' });
+    const response = await fetch('recorder.js?v=20261007-2', { cache: 'no-store' });
     if (!response.ok) throw new Error('recorder.js HTTP '+response.status);
     const code = await response.text();
     window.opener.postMessage({ type: 'discord-recorder-source', nonce, code }, origin);
-    status.textContent = '전달했습니다. 이 창은 자동으로 닫힙니다.';
+    status.textContent = '전달했습니다. 이 창을 기록 화면으로 전환하는 중입니다.';
   } catch(error) {
     status.textContent = '불러오기 실패: '+error.message;
     window.opener.postMessage({ type: 'discord-recorder-source', nonce, error: error.message }, origin);

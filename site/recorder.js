@@ -133,3 +133,4 @@ function recorder(w,C){
  w.__discordRecorderStop=halt;w.__discordRecorder={ingest,selected,scan,status:say,connection:s=>{health.state=s;healthRender();render();},packet:time=>{health.packets++;health.last=time;healthRender();if(health.packets===1)render();},decoded:(type,time)=>{health.decoded++;health.lastType=type;healthRender();},health};healthRender();render();
 }
 capture(recorder);
+'기록 창을 열었습니다. 서버 ID를 확인하고 기록 시작을 누르세요.';
