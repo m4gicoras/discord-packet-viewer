@@ -37,7 +37,7 @@ function capture(boot){
  function stop(){if(stopped)return;stopped=true;if(window.WebSocket===Wrapped)window.WebSocket=Original;if(hookedGetter&&Object.getOwnPropertyDescriptor(MessageEvent.prototype,'data')?.get===hookedGetter)Object.defineProperty(MessageEvent.prototype,'data',dataDescriptor);for(const ws of [...sockets])ws.__eventRecorderCleanup?.();popup.__discordRecorderStop?.();clearInterval(timer);if(globalThis.__stopDiscordCapture===stop)delete globalThis.__stopDiscordCapture;}
  const timer=setInterval(()=>{if(popup.closed)stop();},1000);globalThis.__stopDiscordCapture=stop;
  window.addEventListener('beforeunload',stop,{once:true});
- notify('연결을 확인하는 중입니다. 기록이 안 나오면 재연결을 누르세요.');
+ notify('연결을 확인하는 중입니다. 기록이 진행되지 않을 경우, 재연결을 누르세요.');
 }
 
 function recorder(w,C){
@@ -49,7 +49,7 @@ function recorder(w,C){
  make('p',C?'실시간 기록':'저장한 기록 보기');
  const bar=make('div');bar.className='bar';
  make('span','서버 ID',bar);const guild=make('input',undefined,bar);guild.value='1134059900666916935';
- make('span','채널 ID (선택)',bar);const channel=make('input',undefined,bar);channel.placeholder='비우면 해당 서버 전체';
+ make('span','채널 ID (선택)',bar);const channel=make('input',undefined,bar);channel.placeholder='미입력 시, 해당 서버 전체';
  const apply=make('button','설정 적용',bar);const start=make('button','기록 시작',bar);start.id='start';start.disabled=!C;
  const stop=make('button','중지',bar);stop.disabled=true;const reconnect=make('button','재연결',bar);reconnect.disabled=!C;reconnect.onclick=()=>{if(C?.reconnect){C.reconnect();}else say('실시간 기록에서 사용할 수 있습니다.');};
  const filters=make('div');filters.className='bar';const enabled={};
