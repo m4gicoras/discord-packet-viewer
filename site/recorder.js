@@ -42,10 +42,10 @@ function capture(boot){
 
 function recorder(w,C){
  function isGateway(url){try{return /^gateway(?:-[a-z0-9-]+)?\.discord\.gg$/i.test(new URL(url).hostname);}catch{return false;}}
- const D=w.document; D.title='Discord 이벤트 기록기'; D.body.replaceChildren();
+ const D=w.document; D.title='Discord Event Logger'; D.body.replaceChildren();
  const make=(tag,text,parent=D.body)=>{const n=D.createElement(tag);if(text!==undefined)n.textContent=text;parent.append(n);return n;};
  const style=make('style',`*{box-sizing:border-box}body{margin:0;padding:20px;background:#f5f6f8;color:#20242b;font:13px Arial,'Malgun Gothic',sans-serif}h1{font-size:20px;margin:0 0 6px;font-weight:600}p{color:#626a75;line-height:1.6;margin:8px 0}input,select,button,textarea{background:white;border:1px solid #cbd0d8;border-radius:4px;color:#252a32;padding:7px 9px;font:inherit}button{cursor:pointer;white-space:nowrap}button:disabled{opacity:.45;cursor:default}button:hover:not(:disabled){background:#eceff4}.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0}input{min-width:215px}label{display:flex;gap:5px;align-items:center}label input{min-width:0}table{border-collapse:collapse;width:100%;font-size:12px;background:white}th,td{padding:9px 10px;border-bottom:1px solid #e0e3e8;text-align:left;vertical-align:top}th{background:#eceff3;position:sticky;top:0;font-weight:600}td{white-space:pre-wrap;overflow-wrap:anywhere;max-width:350px}.sub{color:#7b8492;font-size:11px;margin-top:4px}.status{padding:8px 10px;background:white;border:1px solid #d9dde4;border-radius:4px;margin-bottom:8px}.health{display:flex;flex-wrap:wrap;gap:24px;padding:12px 10px;background:white;border:1px solid #d9dde4;border-radius:4px;margin-bottom:8px}.health strong{font-size:14px}.hint{padding:8px 10px;background:#fff9e8;border-left:3px solid #d7b455;font-size:12px;color:#66572b;line-height:1.6;margin-bottom:12px}textarea{width:100%;height:130px;font:11px monospace}details{margin:16px 0}summary{cursor:pointer;color:#505969}small{color:#747e8b}.tablebox{overflow:auto;max-height:65vh;border:1px solid #d9dde4}#start{background:#3c536d;color:white;border-color:#3c536d}`);
- make('h1','Discord 로그');
+ make('h1','Discord 이벤트 뷰어');
  make('p',C?'실시간 기록':'저장한 기록 보기');
  const bar=make('div');bar.className='bar';
  make('span','서버 ID',bar);const guild=make('input',undefined,bar);guild.value='1134059900666916935';
@@ -68,7 +68,7 @@ function recorder(w,C){
  function healthRender(){connectionLabel.textContent=health.state;connectionLabel.style.color=health.state==='연결됨'?'#247247':health.state==='연결 끊김'?'#a33b32':'#626a75';packetLabel.textContent='수신 '+health.packets;decodedLabel.textContent='읽은 알림 '+health.decoded;lastLabel.textContent='마지막 수신 '+(health.last?new Date(health.last).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour12:false}):'—');}
 
  const box=make('div');box.className='tablebox';const table=make('table',undefined,box);const head=make('tr',undefined,make('thead',undefined,table));
- for(const t of ['시각 (한국)','이벤트','서버 / 채널','별명 / 사용자','본문 / 변경 전','메시지 ID'])make('th',t,head);
+ for(const t of ['시각 (KST)','이벤트','서버 / 채널','별명 / 사용자','본문 / 변경 전','메시지 ID'])make('th',t,head);
  const tbody=make('tbody',undefined,table);
  const paging=make('div');paging.className='bar';
  make('span','최대 표시 수',paging);const limitInput=make('input',undefined,paging);limitInput.id='display-limit';limitInput.type='number';limitInput.min='1';limitInput.max='10000';limitInput.step='1';limitInput.style.minWidth='0';limitInput.style.width='100px';
