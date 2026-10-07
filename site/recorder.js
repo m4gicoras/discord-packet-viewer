@@ -140,6 +140,21 @@ function recorder(w,C){
  }else{const list=Array.isArray(data)?data:data.events;if(!Array.isArray(list))throw Error('HAR 또는 기록 JSON을 선택하세요.');for(const r of list)if(TYPES.includes(r.type)&&r.guildId===target&&(!chan||r.channelId===chan))rows.push(r);rows=rows.slice(-10000);page=1;persist();render();}
  say('파일을 열었습니다.');}catch(ex){say('파일을 열지 못했습니다. HAR 또는 기록 JSON인지 확인하세요.');}finally{load.value='';}};
  make('small','최근 10,000개 자동 저장 · 표시 설정은 저장·내보내기에 영향을 주지 않습니다.');
+
+ // Creator footer matches the main page.
+ make('style',".recorder-footer { padding: 12px 0 28px; line-height: 1.7; }\n\n.creator {\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  margin: 0;\n  color: #747e8b;\n  font-size: 14px;\n  text-decoration: none;\n}\n\n.creator-by {\n  color: #747e8b;\n  font-size: 12px;\n}\n\n.creator-avatar {\n  display: block;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  border: 1px solid #dce0e5;\n  object-fit: cover;\n}");
+ const footer = make('footer');
+ footer.className = 'recorder-footer';
+ const creator = make('div', undefined, footer);
+ creator.className = 'creator';
+ make('span', 'by', creator).className = 'creator-by';
+ const avatar = make('img', undefined, creator);
+ avatar.className = 'creator-avatar';
+ avatar.src = "https://cdn.discordapp.com/avatars/433514511513681920/6c25509f6799e247818ef5ab9906b80c.png?size=64";
+ avatar.alt = '';
+ avatar.width = 32;
+ avatar.height = 32;
+ make('span', "__m4gi__", creator);
  w.__discordRecorderStop=halt;w.__discordRecorder={ingest,selected,scan,status:say,connection:s=>{health.state=s;healthRender();render();},packet:time=>{health.packets++;health.last=time;healthRender();if(health.packets===1)render();},decoded:(type,time)=>{health.decoded++;health.lastType=type;healthRender();},health};healthRender();render();
 }
 capture(recorder);
