@@ -9,9 +9,11 @@ function capture(boot){
  const C={FluxDispatcher:{subscribe(t,f){if(!subscriptions.has(t))subscriptions.set(t,new Set());subscriptions.get(t).add(f);},unsubscribe(t,f){subscriptions.get(t)?.delete(f);}}};
  C.capture=capture;boot(popup,C);
  const api=popup.__discordRecorder;
+ const diagnostics=()=>api.diagnostics();
+ globalThis.__discordRecorderDiagnostics=diagnostics;
  const Original=window.WebSocket;let stopped=false;const sockets=new Set(),handled=new WeakSet();const dataDescriptor=Object.getOwnPropertyDescriptor(MessageEvent.prototype,'data');let hookedGetter;
  const notify=s=>api.status(s);C.reconnect=()=>{let count=0;for(const ws of [...sockets]){if(ws.readyState===0||ws.readyState===1){count++;ws.close(1000,'recorder reconnect');}}if(count)notify('다시 연결하는 중입니다.');else notify('연결을 찾는 중입니다. 잠시 후 다시 눌러 주세요.');};
- function event(o,time){if(stopped||popup.closed)return;api.decoded(o.t||('op '+o.op),time);api.scan(o.d);if(o.op===0)for(const f of subscriptions.get(o.t)||[])f({...o.d,__receivedAt:time});}
+ function event(o,time){if(stopped||popup.closed)return;api.decoded(o.t||('op '+o.op),time);api.scan(o.d);api.observe(o);if(o.op===0)for(const f of subscriptions.get(o.t)||[])f({...o.d,__receivedAt:time});}
  function attach(ws){if(sockets.has(ws)||!isGateway(ws.url))return;sockets.add(ws);api.connection('연결 중');ws.addEventListener('open',()=>{api.connection('연결됨');notify('연결됐습니다. 기록 시작을 누르세요.');},{once:true});
   const params=new URL(ws.url).searchParams;if(params.get('encoding')!=='json'){notify('현재 연결 방식을 지원하지 않습니다.');return;}
   const compression=params.get('compress');let writer,reader,buffer='',textDecoder=new TextDecoder(),times=[],queue=Promise.resolve(),streamStarted=false,scanIndex=0,depth=0,objectStart=-1,quoted=false,escaped=false;
@@ -34,7 +36,7 @@ function capture(boot){
  const Wrapped=new Proxy(Original,{construct(target,args,newTarget){const ws=Reflect.construct(target,args,newTarget);attach(ws);return ws;}});
  window.WebSocket=Wrapped;
  if(dataDescriptor?.get&&dataDescriptor.configurable){hookedGetter=function(){const value=dataDescriptor.get.call(this);const ws=this.currentTarget;if(!stopped&&ws instanceof Original&&isGateway(ws.url)&&!handled.has(this)){handled.add(this);attach(ws);ws.__eventRecorderFeed?.(value);}return value;};Object.defineProperty(MessageEvent.prototype,'data',{...dataDescriptor,get:hookedGetter});}
- function stop(){if(stopped)return;stopped=true;if(window.WebSocket===Wrapped)window.WebSocket=Original;if(hookedGetter&&Object.getOwnPropertyDescriptor(MessageEvent.prototype,'data')?.get===hookedGetter)Object.defineProperty(MessageEvent.prototype,'data',dataDescriptor);for(const ws of [...sockets])ws.__eventRecorderCleanup?.();popup.__discordRecorderStop?.();clearInterval(timer);if(globalThis.__stopDiscordCapture===stop)delete globalThis.__stopDiscordCapture;}
+ function stop(){if(stopped)return;stopped=true;if(window.WebSocket===Wrapped)window.WebSocket=Original;if(hookedGetter&&Object.getOwnPropertyDescriptor(MessageEvent.prototype,'data')?.get===hookedGetter)Object.defineProperty(MessageEvent.prototype,'data',dataDescriptor);for(const ws of [...sockets])ws.__eventRecorderCleanup?.();popup.__discordRecorderStop?.();clearInterval(timer);if(globalThis.__stopDiscordCapture===stop)delete globalThis.__stopDiscordCapture;if(globalThis.__discordRecorderDiagnostics===diagnostics)delete globalThis.__discordRecorderDiagnostics;}
  const timer=setInterval(()=>{if(popup.closed)stop();},1000);globalThis.__stopDiscordCapture=stop;
  window.addEventListener('beforeunload',stop,{once:true});
  notify('연결을 확인하는 중입니다. 기록이 진행되지 않을 경우, 재연결을 누르세요.');
@@ -84,6 +86,16 @@ function recorder(w,C){
 
  let target=guild.value,chan='',rows=[],active=false,handlers=[],storageFailed=false;
  const messages=new Map(),users=new Map(),guilds=new Map(),channels=new Map(),members=new Map();
+ const observedTypes={},observedGuilds={},recentEvents=[];
+ function observe(o){
+  if(o.op!==0||!TYPES.includes(o.t))return;
+  const d=o.d||{},cid=d.channel_id||null,gid=d.guild_id||channels.get(cid)?.guild_id||null;
+  observedTypes[o.t]=(observedTypes[o.t]||0)+1;
+  if(gid)observedGuilds[gid]=(observedGuilds[gid]||0)+1;
+  recentEvents.push({type:o.t,guildId:gid,channelId:cid});
+  if(recentEvents.length>10)recentEvents.shift();
+ }
+ function diagnostics(){return {serverId:target,channelId:chan||null,serverName:guilds.get(target)||null,recording:active,received:health.packets,decoded:health.decoded,stored:rows.length,eventTypes:{...observedTypes},servers:{...observedGuilds},lastEvents:recentEvents.slice()};}
  const key='discord-event-recorder-v1';
  try{const saved=JSON.parse(w.localStorage.getItem(key)||'null');if(saved&&Array.isArray(saved.rows)){rows=saved.rows;target=saved.target||target;chan=saved.chan||'';guild.value=target;channel.value=chan;displayLimit=Math.max(1,Math.min(10000,Math.floor(Number(saved.displayLimit)||10000)));pageSize=[10,25,50,100,200,500].includes(Number(saved.pageSize))?Number(saved.pageSize):50;}}catch{}
  limitInput.value=String(displayLimit);sizeInput.value=String(pageSize);
@@ -155,7 +167,7 @@ function recorder(w,C){
  avatar.width = 32;
  avatar.height = 32;
  make('span', "__m4gi__", creator);
- w.__discordRecorderStop=halt;w.__discordRecorder={ingest,selected,scan,status:say,connection:s=>{health.state=s;healthRender();render();},packet:time=>{health.packets++;health.last=time;healthRender();if(health.packets===1)render();},decoded:(type,time)=>{health.decoded++;health.lastType=type;healthRender();},health};healthRender();render();
+ w.__discordRecorderStop=halt;w.__discordRecorder={ingest,selected,scan,observe,diagnostics,status:say,connection:s=>{health.state=s;healthRender();render();},packet:time=>{health.packets++;health.last=time;healthRender();if(health.packets===1)render();},decoded:(type,time)=>{health.decoded++;health.lastType=type;healthRender();},health};healthRender();render();
 }
 capture(recorder);
 '기록 창을 열었습니다. 서버 ID를 확인하고 기록 시작을 누르세요.';
