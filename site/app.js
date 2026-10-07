@@ -1,26 +1,39 @@
 const base = new URL('./', location.href).href;
 const loaderURL = new URL('loader.html', base).href;
-// eval is deliberately at the top level of the DevTools command.
+// The loader and recorder reuse one window. eval runs in the DevTools command.
 const command = `eval(await (async () => {
   const origin = ${JSON.stringify(new URL(base).origin)};
   const nonce = crypto.randomUUID();
-  const view = window.open('about:blank', 'discord_event_recorder', 'width=1400,height=900');
-  if (!view) throw new Error('팝업을 허용한 뒤 다시 실행하세요.');
-  view.document.body.textContent = '실행 파일을 불러오는 중…';
+  const help = '팝업이 차단됐습니다. 디스코드 탭 주소창 오른쪽의 팝업 차단 아이콘 → discord.com의 팝업 및 리디렉션 항상 허용 → 완료. 그다음 이 코드를 다시 실행하세요.';
   return await new Promise((resolve, reject) => {
     let popup;
-    const cleanup = () => { clearTimeout(timer); window.removeEventListener('message', receive); popup?.close(); };
-    const receive = event => {
+    const cleanup = () => { clearTimeout(timer); window.removeEventListener('message', receive); };
+    const receive = async event => {
       if (event.origin !== origin || event.source !== popup || event.data?.nonce !== nonce || event.data?.type !== 'discord-recorder-source') return;
       cleanup();
-      if (event.data.error) reject(new Error(event.data.error));
-      else if (typeof event.data.code === 'string') resolve(event.data.code);
-      else reject(new Error('실행 코드가 없습니다.'));
+      if (event.data.error || typeof event.data.code !== 'string') {
+        popup.close(); reject(new Error(event.data.error || '실행 코드가 없습니다.')); return;
+      }
+      try {
+        popup.location = 'about:blank';
+        const deadline = Date.now() + 5000;
+        while (true) {
+          if (popup.closed) throw new Error('기록 창이 닫혔습니다.');
+          try { if (popup.document.URL === 'about:blank' && popup.document.body) break; } catch {}
+          if (Date.now() > deadline) throw new Error('기록 창 준비가 지연됐습니다. 전체 코드 복사로 실행하세요.');
+          await new Promise(r => setTimeout(r, 30));
+        }
+        window.__discordRecorderLaunchWindow = popup;
+        resolve(event.data.code);
+      } catch(error) { reject(error); }
     };
-    const timer = setTimeout(() => { cleanup(); reject(new Error('실행 파일을 못 받았습니다. 팝업 허용과 Pages 배포 상태를 확인하세요.')); }, 30000);
+    const timer = setTimeout(() => { cleanup(); popup?.close(); reject(new Error('실행 파일을 못 받았습니다. 사이트의 전체 코드 복사로 실행하세요.')); }, 30000);
     window.addEventListener('message', receive);
-    popup = window.open(${JSON.stringify(loaderURL)} + '?nonce=' + encodeURIComponent(nonce) + '&origin=' + encodeURIComponent(location.origin), 'discord_recorder_loader', 'width=460,height=240');
-    if (!popup) { cleanup(); reject(new Error('로더 팝업을 허용하세요.')); }
+    popup = window.open(${JSON.stringify(loaderURL)} + '?nonce=' + encodeURIComponent(nonce) + '&origin=' + encodeURIComponent(location.origin), 'discord_event_recorder', 'width=1400,height=900');
+    if (!popup) {
+      cleanup(); console.error('%c'+help, 'font-size:15px;line-height:1.8;color:#b33');
+      alert(help); reject(new Error(help));
+    }
   });
 })());`;
 document.querySelector('#loader').value = command;
@@ -36,3 +49,5 @@ document.querySelector('#copy-full').onclick = async event => {
   catch(e) { document.querySelector('#status').textContent = '코드를 불러오지 못했습니다: '+e.message; }
   finally { button.disabled = false; }
 };
+
+document.querySelector('#show-help').onclick = () => { const help = document.querySelector('#popup-help'); help.open = true; help.scrollIntoView({behavior:'smooth',block:'center'}); };

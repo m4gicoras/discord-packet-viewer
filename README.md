@@ -8,7 +8,7 @@
 
 - `site/recorder.js`: WebSocket 수집과 기록 창. 지역별 Gateway 주소와 JSON + zlib-stream을 지원합니다.
 - `site/index.html`, `app.js`: 실행 코드 복사 화면.
-- `site/loader.html`, `loader.js`: Pages에서 recorder.js를 읽어 호출한 디스코드 탭에 전달합니다. Discord 페이지에서 외부 fetch를 하지 않습니다. 전달 시 origin, popup source, nonce를 확인합니다.
+- `site/loader.html`, `loader.js`: Pages에서 recorder.js를 읽어 호출한 디스코드 탭에 전달합니다. 로더 창을 기록 창으로 재사용하므로 새 창은 하나만 엽니다. Discord 페이지에서 외부 fetch를 하지 않습니다. 전달 시 origin, popup source, nonce를 확인합니다.
 - `site/viewer.html`: 저장된 HAR와 기록 JSON 열람. HTML만 열어서는 실시간 수집이 시작되지 않습니다.
 
 메시지 생성/갱신/삭제와 입력 중 알림을 서버명, 채널명, 사용자 ID 및 서버 별명과 기록합니다. 이름과 별명은 실제로 수신한 메타데이터가 있을 때만 표시합니다. 삭제 이벤트의 작성자와 본문은 이전에 관측한 메시지가 있을 때만 보완합니다. 타이핑 내용과 종료 시각은 전달되지 않습니다. 메시지 갱신에는 임베드 변경 등이 포함될 수 있습니다.
@@ -21,4 +21,4 @@ GitHub 저장소 Settings → Pages → Source를 **GitHub Actions**로 설정�
 
 ## 로더가 차단될 때
 
-팝업 차단을 해제합니다. 브라우저 정책·DevTools 환경에 따라 코드 실행이 제한될 수 있습니다. 사이트의 **전체 코드 복사**를 사용하거나 Sources → Snippets에 저장하여 실행할 수 있습니다. 로더의 실제 Discord 세션 실행은 사용 환경에서 확인이 필요합니다.
+팝업이 차단되면 Console과 안내창에 허용 순서가 표시됩니다. 디스코드 탭 주소창의 팝업 차단 아이콘에서 discord.com의 팝업을 항상 허용합니다. 사이트의 팝업 허용 방법 버튼에서도 안내를 볼 수 있습니다. 브라우저 정책·DevTools 환경에 따라 코드 실행이 제한될 수 있습니다. 사이트의 **전체 코드 복사**를 사용하거나 Sources → Snippets에 저장하여 실행할 수 있습니다. 로더의 실제 Discord 세션 실행은 사용 환경에서 확인이 필요합니다.

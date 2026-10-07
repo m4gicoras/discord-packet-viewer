@@ -2,7 +2,7 @@
 function capture(boot){
  function isGateway(url){try{return /^gateway(?:-[a-z0-9-]+)?\.discord\.gg$/i.test(new URL(url).hostname);}catch{return false;}}
  if(globalThis.__stopDiscordCapture)globalThis.__stopDiscordCapture();
- const popup=window.open('about:blank','discord_event_recorder','width=1400,height=900');
+ const prepared=window.__discordRecorderLaunchWindow;delete window.__discordRecorderLaunchWindow;const popup=prepared&&!prepared.closed?prepared:window.open('about:blank','discord_event_recorder','width=1400,height=900');
  if(!popup)throw Error('팝업을 허용한 뒤 다시 실행하세요.');
  popup.__discordRecorderStop?.();
  const subscriptions=new Map();
